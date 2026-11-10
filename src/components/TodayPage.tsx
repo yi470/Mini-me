@@ -25,6 +25,47 @@ import {
   FileText,
 } from 'lucide-react';
 
+async function parseApiResponse(response: Response): Promise<{
+  ok: boolean;
+  status: number;
+  data: any;
+  errorMessage?: string;
+}> {
+  const contentType = response.headers.get('content-type') || '';
+  let parsedJson: any = null;
+
+  if (contentType.includes('application/json')) {
+    try {
+      parsedJson = await response.json();
+    } catch {
+      parsedJson = null;
+    }
+  }
+
+  if (response.ok && parsedJson) {
+    return { ok: true, status: response.status, data: parsedJson };
+  }
+
+  // Handle failure case without crashing JSON parsing
+  let errorMsg = parsedJson?.error;
+  if (!errorMsg) {
+    if (response.status === 404) {
+      errorMsg =
+        'Mini-Me reflection endpoint was not found (HTTP 404). Please verify your Vercel deployment routes and serverless functions.';
+    } else if (response.status === 405) {
+      errorMsg = 'Method not allowed (HTTP 405). The server requires a POST request.';
+    } else if (response.status >= 500) {
+      errorMsg = `Server error (HTTP ${response.status}). Please check your server environment variables and GEMINI_API_KEY.`;
+    } else if (!response.ok) {
+      errorMsg = `Reflection request failed with HTTP status ${response.status}.`;
+    } else {
+      errorMsg = 'Received an unexpected non-JSON response from the server.';
+    }
+  }
+
+  return { ok: false, status: response.status, data: parsedJson, errorMessage: errorMsg };
+}
+
 export const TodayPage: React.FC = () => {
   const {
     palette,
@@ -216,13 +257,15 @@ export const TodayPage: React.FC = () => {
       });
 
       clearTimeout(timeoutId);
-      const result = await response.json();
+      const parsed = await parseApiResponse(response);
 
       if (currentSeq !== requestSeqRef.current) return;
 
-      if (!response.ok) {
-        throw new Error(result?.error || 'Unable to generate reflection at this time.');
+      if (!parsed.ok || !parsed.data) {
+        throw new Error(parsed.errorMessage || 'Unable to generate reflection at this time.');
       }
+
+      const result = parsed.data;
 
       setReflectionData(result);
       setReflectedText(trimmed);
@@ -317,11 +360,13 @@ export const TodayPage: React.FC = () => {
         }),
       });
 
-      const result = await response.json();
+      const parsed = await parseApiResponse(response);
 
-      if (!response.ok) {
-        throw new Error(result?.error || 'Unable to revise reflection at this time.');
+      if (!parsed.ok || !parsed.data) {
+        throw new Error(parsed.errorMessage || 'Unable to revise reflection at this time.');
       }
+
+      const result = parsed.data;
 
       setRevisedData(result);
       setStage('feedback');
