@@ -3,10 +3,10 @@
 @theme {
   --font-serif: "Cormorant Garamond", Georgia, Cambria, serif;
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --color-paper: #FBF9F5;
-  --color-paper-muted: #F4F1EA;
+  --color-paper: #FAF8F5;
+  --color-paper-muted: #F5EFE6;
   --color-paper-card: #FFFFFF;
-  --color-paper-border: #EAE5DC;
+  --color-paper-border: #EAE3D5;
   --color-stone-ink: #201D1A;
 }
 
@@ -16,7 +16,7 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #FBF9F5;
+  background-color: #FAF8F5;
   color: #292524;
   min-height: 100vh;
 }
@@ -30,9 +30,9 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #DDD7CD;
+  background: #E2DACD;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #C4BCAC;
+  background: #CFC5B4;
 }

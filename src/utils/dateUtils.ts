@@ -47,6 +47,16 @@ export interface CalendarDay {
   isToday: boolean;
 }
 
+export interface WeekDay {
+  date: Date;
+  iso: string;
+  dayNumber: number;
+  dayName: string;
+  dayShort: string;
+  monthShort: string;
+  isToday: boolean;
+}
+
 /**
  * Returns a 35 or 42 grid of days for the monthly view
  * Week starts on Monday for natural visual rhythm
@@ -109,4 +119,56 @@ export function getMonthCalendarGrid(year: number, month: number, referenceDate:
   }
 
   return grid;
+}
+
+/**
+ * Returns the 7 days of the week containing referenceDate (Monday through Sunday)
+ */
+export function getWeekDays(referenceDate: Date, todayIso: string): WeekDay[] {
+  const rawDay = referenceDate.getDay();
+  // 0 is Sun, 1 is Mon ... 6 is Sat. Monday offset is 1 - rawDay (if Sun, -6)
+  const diffToMonday = rawDay === 0 ? -6 : 1 - rawDay;
+  
+  const monday = new Date(referenceDate);
+  monday.setDate(referenceDate.getDate() + diffToMonday);
+
+  const days: WeekDay[] = [];
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const dayShorts = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const iso = formatDateToIso(d);
+    days.push({
+      date: d,
+      iso,
+      dayNumber: d.getDate(),
+      dayName: dayNames[i],
+      dayShort: dayShorts[i],
+      monthShort: new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d),
+      isToday: iso === todayIso,
+    });
+  }
+
+  return days;
+}
+
+/**
+ * Formats a weekly range, e.g. "Nov 9 – 15, 2026" or "Nov 30 – Dec 6, 2026"
+ */
+export function formatWeekRange(start: Date, end: Date): string {
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const sameMonth = start.getMonth() === end.getMonth();
+
+  const startMonth = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(start);
+  const endMonth = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(end);
+
+  if (sameYear && sameMonth) {
+    return `${startMonth} ${start.getDate()} – ${end.getDate()}, ${start.getFullYear()}`;
+  } else if (sameYear) {
+    return `${startMonth} ${start.getDate()} – ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
+  } else {
+    return `${startMonth} ${start.getDate()}, ${start.getFullYear()} – ${endMonth} ${end.getDate()}, ${end.getFullYear()}`;
+  }
 }
