@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleReflect, handleRevise } from './geminiService';
+import { handleReflect, handleRevise } from './geminiService.js';
 
 const app = express();
 

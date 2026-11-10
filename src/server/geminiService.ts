@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
 
 // Available 15 default mood categories
